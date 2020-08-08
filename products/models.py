@@ -8,6 +8,9 @@ class BaseForModels(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True, help_text="If the entry is active or soft deleted")
 
+    class Meta:
+        abstract = True
+
 
 class ActiveProductsManager(models.Manager):
     def get_queryset(self):
@@ -30,6 +33,10 @@ class Product(BaseForModels):
     def __str__(self):
         return self.title
 
+    @staticmethod
+    def get_product_based_on_id(product_id):
+        return Product.objects.filter(pk=product_id).first()
+
     class Meta:
         get_latest_by = "created_at"
         ordering = ["-created_at"]
@@ -45,11 +52,22 @@ class Cart(BaseForModels):
     user = models.OneToOneField(User, related_name="shopping_cart", null=True, blank=True,
                                 help_text="If logged in user, then Cart will be saved against this User",
                                 on_delete=models.CASCADE)
-    price = models.PositiveSmallIntegerField()
-    discount = models.PositiveSmallIntegerField()
+    price = models.PositiveSmallIntegerField(default=0, help_text="Price of all products on cart")
+    discount = models.PositiveSmallIntegerField(default=0, help_text="Discount amount on cart")
 
-    def __str__(self):
-        return self.pk
+    def is_cart_active(self):
+        """
+        Used to check if Cart is soft deleted or active
+        """
+        return self.is_active
+
+    def set_cart_active(self):
+        """
+        Used to set cart as active if deleted
+        """
+        if not self.is_cart_active():
+            self.is_active = True
+            self.save(update_fields=["is_active"])
 
     class Meta:
         get_latest_by = "created_at"
@@ -72,6 +90,13 @@ class CartItem(BaseForModels):
 
     def __str__(self):
         return self.product.title
+
+    @staticmethod
+    def get_all_items_on_cart(cart):
+        """
+        Used to return all the items under a cart by passing cart
+        """
+        return CartItem.objects.filter(cart=cart)
 
     class Meta:
         get_latest_by = "created_at"
