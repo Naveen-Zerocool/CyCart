@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytz
+
 from products.models import PromotionRule, CartItem, Product
 
 
@@ -7,7 +9,7 @@ class Promotion:
 
     def __init__(self, cart):
         self.active_promotions = PromotionRule.objects.filter(disable=False, is_active=True,
-                                                              start_from__lte=datetime.now())
+                                                              start_from__lte=datetime.now(tz=pytz.UTC))
         self.cart = cart
 
     def apply_cart_promotions(self):
@@ -21,8 +23,10 @@ class Promotion:
                             self.cart.discount = promotion_rule.discount_price if promotion_rule.discount_price <= self.cart.price else 0
                         if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_DISCOUNT_PERCENTAGE:
                             self.cart.discount = (self.cart.price * promotion_rule.discount_percentage) / 100
+                    else:
+                        self.cart.discount = 0
         if initial_discount != self.cart.discount:
-            self.cart.save(update_fields=["discount"])
+            self.cart.save()
 
     def apply_cart_item_promotions(self):
         product_items = CartItem.get_all_items_on_cart(cart=self.cart)
@@ -39,9 +43,12 @@ class Promotion:
                                 product.discount = promotion_rule.discount_price
                             if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_DISCOUNT_PERCENTAGE:
                                 product.discount = (product.total_price * promotion_rule.discount_percentage) / 100
+                        else:
+                            product.discount = 0
                     if initial_discount != product.discount:
                         product.save()
 
     def apply_promotions(self):
-        self.apply_cart_promotions()
         self.apply_cart_item_promotions()
+        self.cart.update_price()
+        self.apply_cart_promotions()

@@ -22,7 +22,7 @@ class Cart:
             cart = models.Cart.objects.filter(query).first() if not cart else cart
             if not request.user and request.user.is_authenticated:
                 cart.user = request.user
-                cart.save(update_fields=["user"])
+                cart.save()
             if cart is None:
                 cart = self.add_new_cart(request)
             if cart and not cart.is_cart_active():
@@ -45,11 +45,13 @@ class Cart:
         item = models.CartItem.objects.filter(cart=self.cart, product=product).first()
         if not item:
             models.CartItem.objects.create(cart=self.cart, product=product)
+        self.apply_promotions()
 
     def remove_product(self, product):
         item = models.CartItem.objects.filter(cart=self.cart, product=product).first()
         if item:
             item.delete()
+        self.apply_promotions()
 
     def update_product(self, product, quantity):
         item = models.CartItem.objects.filter(cart=self.cart, product=product).first()
@@ -59,4 +61,7 @@ class Cart:
             else:
                 item.quantity = int(quantity)
                 item.save()
+        self.apply_promotions()
+
+    def apply_promotions(self):
         self.promotion.apply_promotions()

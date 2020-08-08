@@ -53,8 +53,8 @@ class Cart(BaseForModels):
     user = models.OneToOneField(User, related_name="shopping_cart", null=True, blank=True,
                                 help_text="If logged in user, then Cart will be saved against this User",
                                 on_delete=models.CASCADE)
-    price = models.PositiveSmallIntegerField(default=0, help_text="Price of all products on cart")
-    discount = models.PositiveSmallIntegerField(default=0, help_text="Discount amount on cart")
+    price = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text="Price of all products on cart")
+    discount = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text="Discount amount on cart")
 
     def is_cart_active(self):
         """
@@ -68,13 +68,13 @@ class Cart(BaseForModels):
         """
         if not self.is_cart_active():
             self.is_active = True
-            self.save(update_fields=["is_active"])
+            self.save()
 
     def update_price(self):
         if CartItem.get_all_items_on_cart(cart=self).exists():
             self.price = CartItem.get_all_items_on_cart(cart=self).aggregate(
                 price_total=Sum('final_price'))["price_total"]
-            self.save(update_fields=["price"])
+            self.save()
 
     class Meta:
         get_latest_by = "created_at"
@@ -117,18 +117,17 @@ class CartItem(BaseForModels):
         """
         self.total_price = self.product.price * self.quantity
         if not skip_save:
-            self.save(update_fields=["total_price"])
+            self.save()
 
     def update_price(self, skip_save=False):
         self.update_total_price(skip_save=skip_save)
         self.final_price = self.total_price - self.discount
         if not skip_save:
-            self.save(update_fields=["final_price"])
+            self.save()
 
     def save(self, *args, **kwargs):
         self.update_price(skip_save=True)
         super(CartItem, self).save(*args, **kwargs)
-        self.cart.update_price()
 
     class Meta:
         get_latest_by = "created_at"
