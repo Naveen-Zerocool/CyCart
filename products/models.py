@@ -71,8 +71,10 @@ class Cart(BaseForModels):
             self.save(update_fields=["is_active"])
 
     def update_price(self):
-        self.price = CartItem.get_all_items_on_cart(cart=self).aggregate(price_total=Sum('total_price'))["price_total"]
-        self.save(update_fields=["price"])
+        if CartItem.get_all_items_on_cart(cart=self).exists():
+            self.price = CartItem.get_all_items_on_cart(cart=self).aggregate(
+                price_total=Sum('final_price'))["price_total"]
+            self.save(update_fields=["price"])
 
     class Meta:
         get_latest_by = "created_at"
@@ -94,6 +96,10 @@ class CartItem(BaseForModels):
                                                 help_text="Quantity of the item on cart")
     total_price = models.DecimalField(max_digits=6, decimal_places=2, default=0,
                                       help_text="Total price of the item based on quantity")
+    discount = models.DecimalField(max_digits=6, decimal_places=2, default=0,
+                                   help_text="Discount price of the product item")
+    final_price = models.DecimalField(max_digits=6, decimal_places=2, default=0,
+                                      help_text="Final price of the item after discount")
 
     def __str__(self):
         return self.product.title
@@ -113,10 +119,16 @@ class CartItem(BaseForModels):
         if not skip_save:
             self.save(update_fields=["total_price"])
 
+    def update_price(self, skip_save=False):
+        self.update_total_price(skip_save=skip_save)
+        self.final_price = self.total_price - self.discount
+        if not skip_save:
+            self.save(update_fields=["final_price"])
+
     def save(self, *args, **kwargs):
-        self.update_total_price(skip_save=True)
-        self.cart.update_price()
+        self.update_price(skip_save=True)
         super(CartItem, self).save(*args, **kwargs)
+        self.cart.update_price()
 
     class Meta:
         get_latest_by = "created_at"
@@ -136,14 +148,6 @@ class PromotionRule(BaseForModels):
         (PROMOTION_TYPE_FIXED_AMOUNT, "Fixed Amount")
     )
 
-    PROMOTION_ON_SINGLE_PRODUCT = "single_product"
-    PROMOTION_ON_MULTIPLE_PRODUCT = "multiple_product"
-
-    PROMOTION_ON_CHOICES = (
-        (PROMOTION_ON_SINGLE_PRODUCT, "Single Product"),
-        (PROMOTION_ON_MULTIPLE_PRODUCT, "Multiple Product")
-    )
-
     PROMOTION_FOR_CART = "cart"
     PROMOTION_FOR_PRODUCT = "product"
 
@@ -152,8 +156,8 @@ class PromotionRule(BaseForModels):
         (PROMOTION_FOR_PRODUCT, "Product")
     )
 
-    DISCOUNT_ON_PRODUCT_COUNT = "product_count"
-    DISCOUNT_ON_CART_TOTAL = "cart_total"
+    DISCOUNT_ON_PRODUCT_COUNT = "product_counts"
+    DISCOUNT_ON_CART_TOTAL = "total_value"
 
     DISCOUNT_ON_CHOICES = (
         (DISCOUNT_ON_PRODUCT_COUNT, "Count"),
@@ -161,16 +165,13 @@ class PromotionRule(BaseForModels):
     )
 
     name = models.CharField(max_length=100, help_text="Name for the promotion rule")
-    product = models.ForeignKey(Product, help_text="Product for which promotion applies to", null=True, blank=True,
-                                on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, help_text="Products for which this promotion applies to")
     start_from = models.DateTimeField(help_text="Promotion starting on date and time")
     end_by = models.DateTimeField(null=True, blank=True, help_text="Promotion ending on date and time")
     disable = models.BooleanField(default=False, help_text="True if promotion is stopped")
     promotion_for = models.CharField(max_length=100, help_text="Promotion for cart or product",
                                      choices=PROMOTION_FOR_CHOICES)
     promotion_type = models.CharField(max_length=100, help_text="Type of promotion", choices=PROMOTION_TYPE_CHOICES)
-    promotion_on = models.CharField(max_length=100, help_text="Promotion for single or multiple products",
-                                    choices=PROMOTION_ON_CHOICES)
     discount_percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)],
                                                            help_text="Discount percentage to give", null=True,
                                                            blank=True)

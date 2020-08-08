@@ -2,6 +2,7 @@ from django.db.models import Q
 
 from . import models
 from .models import CartItem
+from .promotion import Promotion
 
 CART_ID = "CART-ID"
 
@@ -19,7 +20,7 @@ class Cart:
             if request.user.is_authenticated:
                 cart = models.Cart.objects.filter(user=request.user).first()
             cart = models.Cart.objects.filter(query).first() if not cart else cart
-            if not cart.user and request.user.is_authenticated:
+            if not request.user and request.user.is_authenticated:
                 cart.user = request.user
                 cart.save(update_fields=["user"])
             if cart is None:
@@ -29,6 +30,7 @@ class Cart:
         else:
             cart = self.add_new_cart(request)
         self.cart = cart
+        self.promotion = Promotion(cart)
 
     @classmethod
     def add_new_cart(cls, request):
@@ -57,3 +59,4 @@ class Cart:
             else:
                 item.quantity = int(quantity)
                 item.save()
+        self.promotion.apply_promotions()
