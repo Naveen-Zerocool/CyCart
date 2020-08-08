@@ -23,27 +23,11 @@ class CartSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    title = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
-    price = serializers.SerializerMethodField()
-    image = serializers.SerializerMethodField()
-
-    @staticmethod
-    def get_title(obj):
-        return obj.product.title
-
-    @staticmethod
-    def get_description(obj):
-        return obj.product.description
-
-    @staticmethod
-    def get_price(obj):
-        return obj.product.price
-
-    @staticmethod
-    def get_image(obj):
-        return obj.product.image
+    title = serializers.CharField(source="product.title")
+    description = serializers.CharField(source="product.description")
+    price = serializers.DecimalField(source="product.price", max_digits=6, decimal_places=2)
+    image = serializers.URLField(source="product.image")
 
     class Meta:
         model = CartItem
-        fields = ["pk", "title", "description", "price", "image", "quantity"]
+        fields = ["pk", "product", "title", "description", "price", "image", "quantity", "total_price"]

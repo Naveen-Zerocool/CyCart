@@ -17,7 +17,7 @@ class Cart:
         if cart_id:
             query = Q(id=cart_id)
             if request.user.is_authenticated:
-                cart = models.Cart.objects.filter(user=request.user, id=cart_id).first()
+                cart = models.Cart.objects.filter(user=request.user).first()
             cart = models.Cart.objects.filter(query).first() if not cart else cart
             if not cart.user and request.user.is_authenticated:
                 cart.user = request.user
@@ -56,4 +56,4 @@ class Cart:
                 item.delete()
             else:
                 item.quantity = int(quantity)
-                item.save(update_fields=["quantity"])
+                item.save()

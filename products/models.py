@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Sum
 
 
 class BaseForModels(models.Model):
@@ -23,7 +24,7 @@ class Product(BaseForModels):
     """
     title = models.CharField(max_length=64, help_text="Title of the product")
     description = models.TextField(help_text="Description of the product")
-    price = models.DecimalField(max_digits=6, decimal_places=2, help_text="Price of the product")
+    price = models.DecimalField(max_digits=6, decimal_places=2, default=0, help_text="Price of the product")
     image = models.URLField(help_text="Image for the product", null=True, blank=True)
     stock = models.IntegerField(null=True, blank=True, help_text="Stock available for the product")
 
@@ -69,6 +70,10 @@ class Cart(BaseForModels):
             self.is_active = True
             self.save(update_fields=["is_active"])
 
+    def update_price(self):
+        self.price = CartItem.get_all_items_on_cart(cart=self).aggregate(price_total=Sum('total_price'))["price_total"]
+        self.save(update_fields=["price"])
+
     class Meta:
         get_latest_by = "created_at"
         ordering = ["-created_at"]
@@ -87,6 +92,8 @@ class CartItem(BaseForModels):
                                 on_delete=models.CASCADE)
     quantity = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)],
                                                 help_text="Quantity of the item on cart")
+    total_price = models.DecimalField(max_digits=6, decimal_places=2, default=0,
+                                      help_text="Total price of the item based on quantity")
 
     def __str__(self):
         return self.product.title
@@ -97,6 +104,19 @@ class CartItem(BaseForModels):
         Used to return all the items under a cart by passing cart
         """
         return CartItem.objects.filter(cart=cart)
+
+    def update_total_price(self, skip_save=False):
+        """
+        Update the item price based on quantity provided
+        """
+        self.total_price = self.product.price * self.quantity
+        if not skip_save:
+            self.save(update_fields=["total_price"])
+
+    def save(self, *args, **kwargs):
+        self.update_total_price(skip_save=True)
+        self.cart.update_price()
+        super(CartItem, self).save(*args, **kwargs)
 
     class Meta:
         get_latest_by = "created_at"
