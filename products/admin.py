@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import PromotionRule
 
-# Register your models here.
+
+class PromotionRuleAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(PromotionRule, PromotionRuleAdmin)

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import Sum
 
@@ -124,3 +124,70 @@ class CartItem(BaseForModels):
         verbose_name_plural = "Items"
         verbose_name = "Item"
         db_table = "cart_item"
+
+
+class PromotionRule(BaseForModels):
+
+    PROMOTION_TYPE_DISCOUNT_PERCENTAGE = "discount_percentage"
+    PROMOTION_TYPE_FIXED_AMOUNT = "fixed_amount"
+
+    PROMOTION_TYPE_CHOICES = (
+        (PROMOTION_TYPE_DISCOUNT_PERCENTAGE, "Discount Percentage"),
+        (PROMOTION_TYPE_FIXED_AMOUNT, "Fixed Amount")
+    )
+
+    PROMOTION_ON_SINGLE_PRODUCT = "single_product"
+    PROMOTION_ON_MULTIPLE_PRODUCT = "multiple_product"
+
+    PROMOTION_ON_CHOICES = (
+        (PROMOTION_ON_SINGLE_PRODUCT, "Single Product"),
+        (PROMOTION_ON_MULTIPLE_PRODUCT, "Multiple Product")
+    )
+
+    PROMOTION_FOR_CART = "cart"
+    PROMOTION_FOR_PRODUCT = "product"
+
+    PROMOTION_FOR_CHOICES = (
+        (PROMOTION_FOR_CART, "Cart"),
+        (PROMOTION_FOR_PRODUCT, "Product")
+    )
+
+    DISCOUNT_ON_PRODUCT_COUNT = "product_count"
+    DISCOUNT_ON_CART_TOTAL = "cart_total"
+
+    DISCOUNT_ON_CHOICES = (
+        (DISCOUNT_ON_PRODUCT_COUNT, "Count"),
+        (DISCOUNT_ON_CART_TOTAL, "Total Value")
+    )
+
+    name = models.CharField(max_length=100, help_text="Name for the promotion rule")
+    product = models.ForeignKey(Product, help_text="Product for which promotion applies to", null=True, blank=True,
+                                on_delete=models.CASCADE)
+    start_from = models.DateTimeField(help_text="Promotion starting on date and time")
+    end_by = models.DateTimeField(null=True, blank=True, help_text="Promotion ending on date and time")
+    disable = models.BooleanField(default=False, help_text="True if promotion is stopped")
+    promotion_for = models.CharField(max_length=100, help_text="Promotion for cart or product",
+                                     choices=PROMOTION_FOR_CHOICES)
+    promotion_type = models.CharField(max_length=100, help_text="Type of promotion", choices=PROMOTION_TYPE_CHOICES)
+    promotion_on = models.CharField(max_length=100, help_text="Promotion for single or multiple products",
+                                    choices=PROMOTION_ON_CHOICES)
+    discount_percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(100)],
+                                                           help_text="Discount percentage to give", null=True,
+                                                           blank=True)
+    discount_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True,
+                                         help_text="Discounted price of the product")
+    discount_on = models.CharField(max_length=100, help_text="Discount based on count or total value of products",
+                                   choices=DISCOUNT_ON_CHOICES)
+    discount_condition_value = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)], null=True,
+                                                                blank=True, help_text="Count of product or total value"
+                                                                                      "for discount to apply")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        get_latest_by = "created_at"
+        ordering = ["-created_at"]
+        verbose_name_plural = "Promotion Rules"
+        verbose_name = "Promotion Rule"
+        db_table = "promotion_rule"
