@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -25,9 +27,55 @@ class Product(BaseForModels):
     objects = ActiveProductsManager()
     all_objects = models.Manager()
 
+    def __str__(self):
+        return self.title
+
     class Meta:
         get_latest_by = "created_at"
         ordering = ["-created_at"]
         verbose_name_plural = "Products"
         verbose_name = "Product"
         db_table = "product"
+
+
+class Cart(BaseForModels):
+    """
+    This is model class for Cart/ Basket
+    """
+    user = models.OneToOneField(User, related_name="shopping_cart", null=True, blank=True,
+                                help_text="If logged in user, then Cart will be saved against this User",
+                                on_delete=models.CASCADE)
+    price = models.PositiveSmallIntegerField()
+    discount = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return self.pk
+
+    class Meta:
+        get_latest_by = "created_at"
+        ordering = ["-created_at"]
+        verbose_name_plural = "Carts"
+        verbose_name = "Cart"
+        db_table = "cart"
+
+
+class CartItem(BaseForModels):
+    """
+    This is model class for each cart item on the shopping cart/ basket
+    """
+    cart = models.ForeignKey(Cart, related_name="cart_item", help_text="To which cart this item is associated with",
+                             on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name="cart_product", help_text="Associated product on the cart",
+                                on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)],
+                                                help_text="Quantity of the item on cart")
+
+    def __str__(self):
+        return self.product.title
+
+    class Meta:
+        get_latest_by = "created_at"
+        ordering = ["-created_at"]
+        verbose_name_plural = "Items"
+        verbose_name = "Item"
+        db_table = "cart_item"
