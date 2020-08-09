@@ -32,56 +32,56 @@
         </div>
     </div>
 
-        <div id="basket" class="row">
-              <div class="box">
-                <form method="post" action="checkout1.html">
-                  <h1>Shopping cart</h1>
-                  <p class="text-muted">You currently have [[ cart_data.items.length ]] item(s) in your cart.</p>
-                  <div class="table-responsive">
-                    <table class="table">
-                      <thead>
-                        <tr>
-                          <th colspan="2">Product</th>
-                          <th>Quantity</th>
-                          <th>Unit price</th>
-                          <th>Discount</th>
-                          <th colspan="2">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody v-for="item in cart_data.items">
-                        <tr>
-                          <td><a href="#"><img style="width: 100px; height: 100px" v-bind:src="[[ item.image ]]"></a></td>
-                          <td><a href="#">[[ item.title ]]</a></td>
-                            <td>
-                                <input type="number" v-on:input="update_product(item.product, $event.target.value)" min="1" v-bind:value="[[ item.quantity ]]">
-                            </td>
-                          <td>Rs [[ item.price ]]</td>
-                          <td>Rs [[ item.discount ]]</td>
-                          <td>Rs [[ item.final_price ]]</td>
-                          <td><a v-on:click="remove_product(item.product)"><i class="fa fa-trash-o"></i></a></td>
-                        </tr>
-                      </tbody>
-                      <tfoot>
-                        <tr>
-                          <th colspan="5">Amount</th>
-                          <th colspan="2">Rs [[ cart_data.price ]]</th>
-                        </tr>
-                        <tr>
-                          <th colspan="5">Discount</th>
-                          <th colspan="2">Rs [[ cart_data.discount ]]</th>
-                        </tr>
-                        <tr>
-                          <th colspan="5">Total</th>
-                          <th colspan="2">Rs [[ cart_data.final_price ]]</th>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-
-                </form>
+    <div id="basket" class="row">
+          <div class="box" v-if="cart_data.items.length > 0">
+            <form method="post" action="checkout1.html">
+              <h1>Shopping cart</h1>
+              <p class="text-muted">You currently have [[ cart_data.items.length ]] item(s) in your cart.</p>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th colspan="2">Product</th>
+                      <th>Quantity</th>
+                      <th>Unit price</th>
+                      <th>Discount</th>
+                      <th colspan="2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody v-for="item in cart_data.items">
+                    <tr>
+                      <td><a href="#"><img style="width: 100px; height: 100px" v-bind:src="[[ item.image ]]"></a></td>
+                      <td><a href="#">[[ item.title ]]</a></td>
+                        <td>
+                            <input type="number" v-on:input="update_product(item.product, $event.target.value)" min="1" v-bind:value="[[ item.quantity ]]">
+                        </td>
+                      <td>Rs [[ item.price ]]</td>
+                      <td>Rs [[ item.discount ]]</td>
+                      <td>Rs [[ item.final_price ]]</td>
+                      <td><a v-on:click="remove_product(item.product)"><i class="fa fa-trash-o"></i></a></td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <th colspan="5">Amount</th>
+                      <th colspan="2">Rs [[ cart_data.price ]]</th>
+                    </tr>
+                    <tr>
+                      <th colspan="5">Discount</th>
+                      <th colspan="2">Rs [[ cart_data.discount ]]</th>
+                    </tr>
+                    <tr>
+                      <th colspan="5">Total</th>
+                      <th colspan="2">Rs [[ cart_data.final_price ]]</th>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
-              <!-- /.box-->
-            </div>
+
+            </form>
+          </div>
+          <!-- /.box-->
+        </div>
 
 </div>
 

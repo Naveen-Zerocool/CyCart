@@ -1,11 +1,11 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .cart import Cart
 from .constants import ACTION_UPDATE, ACTION_REMOVE
-from .serializers import ProductSerializer, CartSerializer
+from .serializers import ProductSerializer, CartSerializer, CartAddSerializer, CartEditSerializer
 from .models import Product
 
 
@@ -20,11 +20,19 @@ class ProductsView(viewsets.ModelViewSet):
 
 class CartViews(APIView):
 
+    @swagger_auto_schema(responses={200: CartSerializer})
     def get(self, request):
+        """
+        Get details of cart
+        """
         cart = Cart(request)
         return Response(CartSerializer(cart.cart).data)
 
+    @swagger_auto_schema(responses={201: CartSerializer}, request_body=CartAddSerializer)
     def post(self, request):
+        """
+        Add a product to Cart
+        """
         cart = Cart(request)
         product = None
         if request.data.get('product_id'):
@@ -33,7 +41,11 @@ class CartViews(APIView):
             cart.add_product(product)
         return Response(CartSerializer(cart.cart).data)
 
+    @swagger_auto_schema(responses={200: CartSerializer}, request_body=CartEditSerializer)
     def put(self, request):
+        """
+        Update or remove a product on Cart
+        """
         cart = Cart(request)
         product = None
         action_to_do = request.data.get('action')
