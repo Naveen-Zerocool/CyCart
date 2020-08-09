@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Square Com Cart</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://use.fontawesome.com/bb58f62b59.js"></script>
+</head>
+<body>
+
+<div class="container" id="app">
+
+    <div class="row" id="product-listing" >
+        <div class="card mb-3 bg-light" style="max-width: 540px;" v-for="product in products" >
+          <div class="row no-gutters">
+            <div class="col-md-4">
+              <img v-bind:src="[[ product.image ]]" class="card-img" alt="...">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">[[ product.title ]]</h5>
+                <p class="card-text">[[ product.price ]]</p>
+                <p class="card-text"><small class="text-muted">[[ product.description ]]</small></p>
+                <button v-on:click="add_product(product.id)" class="btn btn-primary">Add to Cart</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+
+        <div id="basket" class="row">
+              <div class="box">
+                <form method="post" action="checkout1.html">
+                  <h1>Shopping cart</h1>
+                  <p class="text-muted">You currently have [[ cart_data.items.length ]] item(s) in your cart.</p>
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th colspan="2">Product</th>
+                          <th>Quantity</th>
+                          <th>Unit price</th>
+                          <th>Discount</th>
+                          <th colspan="2">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody v-for="item in cart_data.items">
+                        <tr>
+                          <td><a href="#"><img style="width: 100px; height: 100px" v-bind:src="[[ item.image ]]"></a></td>
+                          <td><a href="#">[[ item.title ]]</a></td>
+                            <td>
+                                <input type="number" v-on:input="update_product(item.product, $event.target.value)" min="1" v-bind:value="[[ item.quantity ]]">
+                            </td>
+                          <td>Rs [[ item.price ]]</td>
+                          <td>Rs [[ item.discount ]]</td>
+                          <td>Rs [[ item.final_price ]]</td>
+                          <td><a v-on:click="remove_product(item.product)"><i class="fa fa-trash-o"></i></a></td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th colspan="5">Amount</th>
+                          <th colspan="2">Rs [[ cart_data.price ]]</th>
+                        </tr>
+                        <tr>
+                          <th colspan="5">Discount</th>
+                          <th colspan="2">Rs [[ cart_data.discount ]]</th>
+                        </tr>
+                        <tr>
+                          <th colspan="5">Total</th>
+                          <th colspan="2">Rs [[ cart_data.final_price ]]</th>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+
+                </form>
+              </div>
+              <!-- /.box-->
+            </div>
+
+</div>
+
+    <script src="{% static "products/app.js" %}"></script>
+
+</body>
+</html>

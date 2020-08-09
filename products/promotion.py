@@ -48,6 +48,10 @@ class Promotion:
                     if initial_discount != product.discount:
                         product.save()
 
+        if not product_items and self.cart.price > 0:
+            self.cart.price = 0
+            self.cart.save()
+
     def apply_promotions(self):
         self.apply_cart_item_promotions()
         self.cart.update_price()
