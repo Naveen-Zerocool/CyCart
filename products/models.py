@@ -140,11 +140,13 @@ class CartItem(BaseForModels):
 class PromotionRule(BaseForModels):
 
     PROMOTION_TYPE_DISCOUNT_PERCENTAGE = "discount_percentage"
-    PROMOTION_TYPE_FIXED_AMOUNT = "fixed_amount"
+    PROMOTION_TYPE_FIXED_AMOUNT_DISCOUNT = "fixed_discount_amount"
+    PROMOTION_TYPE_FIXED_AMOUNT_PRICE = "product_fixed_price"
 
     PROMOTION_TYPE_CHOICES = (
-        (PROMOTION_TYPE_DISCOUNT_PERCENTAGE, "Discount Percentage"),
-        (PROMOTION_TYPE_FIXED_AMOUNT, "Fixed Amount")
+        (PROMOTION_TYPE_DISCOUNT_PERCENTAGE, "Discount Percentage on total ex: 10% offer"),
+        (PROMOTION_TYPE_FIXED_AMOUNT_DISCOUNT, "Give fixed discount as product price ex: Rs 75 offer if bought 3"),
+        (PROMOTION_TYPE_FIXED_AMOUNT_PRICE, "Give product on a fixed price ex: Buy 3, Get it for Rs 75")
     )
 
     PROMOTION_FOR_CART = "cart"

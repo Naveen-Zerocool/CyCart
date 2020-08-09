@@ -19,7 +19,7 @@ class Promotion:
             for promotion_rule in rules:
                 if promotion_rule.discount_on == PromotionRule.DISCOUNT_ON_CART_TOTAL:
                     if self.cart.price >= promotion_rule.discount_condition_value:
-                        if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_FIXED_AMOUNT:
+                        if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_FIXED_AMOUNT_DISCOUNT:
                             self.cart.discount = promotion_rule.discount_price if promotion_rule.discount_price <= self.cart.price else 0
                         if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_DISCOUNT_PERCENTAGE:
                             self.cart.discount = (self.cart.price * promotion_rule.discount_percentage) / 100
@@ -39,10 +39,19 @@ class Promotion:
                 for promotion_rule in product_promotion_rule:
                     if promotion_rule.discount_on == PromotionRule.DISCOUNT_ON_PRODUCT_COUNT:
                         if product.quantity >= promotion_rule.discount_condition_value:
-                            if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_FIXED_AMOUNT:
+                            if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_FIXED_AMOUNT_DISCOUNT:
                                 product.discount = promotion_rule.discount_price
                             if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_DISCOUNT_PERCENTAGE:
                                 product.discount = (product.total_price * promotion_rule.discount_percentage) / 100
+                            if promotion_rule.promotion_type == PromotionRule.PROMOTION_TYPE_FIXED_AMOUNT_PRICE:
+                                product_quantity_conditions_met = int(product.quantity /
+                                                                      promotion_rule.discount_condition_value)
+                                price_for_condition_met_products = product_quantity_conditions_met * promotion_rule.discount_price
+
+                                normal_price_for_remaining_products = (product.quantity - (product_quantity_conditions_met * promotion_rule.discount_condition_value)) * product.product.price
+
+                                product.discount = product.total_price - (normal_price_for_remaining_products + price_for_condition_met_products)
+                                product.total_price = normal_price_for_remaining_products + price_for_condition_met_products
                         else:
                             product.discount = 0
                     if initial_discount != product.discount:
