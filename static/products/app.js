@@ -1,5 +1,5 @@
-var hostname = 'https://cycart-assignment.herokuapp.com/';
-// var hostname = 'http://127.0.0.1:8000/';
+var hostname = 'https://cycart-assignment.herokuapp.com/api/';
+// var hostname = 'http://127.0.0.1:8000/api/';
 
 const vm = new Vue({
   el: '#app',
