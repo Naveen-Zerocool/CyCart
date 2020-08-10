@@ -12,3 +12,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 admin.site.register(Product, ProductAdmin)
 admin.site.register(PromotionRule, PromotionRuleAdmin)
+
+admin.site.site_header = "CyKart Promotions and Products Admin"
+admin.site.site_title = "CyKart Promotions and Products Admin Portal"
+admin.site.index_title = "Welcome to CyKart Promotions and Products Admin Portal"
