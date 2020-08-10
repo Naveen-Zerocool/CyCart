@@ -7,6 +7,7 @@ from .cart import Cart
 from .constants import ACTION_UPDATE, ACTION_REMOVE
 from .serializers import ProductSerializer, CartSerializer, CartAddSerializer, CartEditSerializer
 from .models import Product
+from rest_framework.authentication import SessionAuthentication
 
 
 class ProductsView(viewsets.ModelViewSet):
@@ -18,7 +19,14 @@ class ProductsView(viewsets.ModelViewSet):
         instance.save()
 
 
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+
+    def enforce_csrf(self, request):
+        return
+
+
 class CartViews(APIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, )
 
     @swagger_auto_schema(responses={200: CartSerializer})
     def get(self, request):

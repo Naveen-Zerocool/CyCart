@@ -1,3 +1,6 @@
+var hostname = 'https://cycart-assignment.herokuapp.com/';
+// var hostname = 'http://127.0.0.1:8000/';
+
 const vm = new Vue({
   el: '#app',
   delimiters: ['[[', ']]'],
@@ -6,16 +9,16 @@ const vm = new Vue({
     cart_data: []
   },
   mounted() {
-    axios.get("http://127.0.0.1:8000/products/")
+    axios.get(hostname+"products/")
     .then(response => {this.products = response.data})
 
-    axios.get("http://127.0.0.1:8000/cart/")
+    axios.get(hostname+"cart/")
     .then(response => {this.cart_data = response.data})
   },
   methods: {
     add_product: function (product_id) {
 
-     axios.post("http://127.0.0.1:8000/cart/", {
+     axios.post(hostname+"cart/", {
        "product_id": product_id
      })
     .then(response => {this.cart_data = response.data})
@@ -24,7 +27,7 @@ const vm = new Vue({
 
     remove_product: function (product_id) {
 
-     axios.put("http://127.0.0.1:8000/cart/", {
+     axios.put(hostname+"cart/", {
        "product_id": product_id,
        "action": "remove"
      })
@@ -34,7 +37,7 @@ const vm = new Vue({
 
     update_product: function (product_id, quantity) {
 
-     axios.put("http://127.0.0.1:8000/cart/", {
+     axios.put(hostname+"cart/", {
        "product_id": product_id,
        "action": "update",
        "quantity": parseInt(quantity)
